@@ -749,11 +749,12 @@ class Datatables
                             //there's no need to put the prefix unless the column name is prefixed with the table name.
                             $column = $this->prefixColumn($column_names[$i]);
 
-                            if (Config::get('datatables::search.case_insensitive', false)) {
-                                $query->orwhere(DB::raw('LOWER(' . $cast_begin . $column . $cast_end . ')'), 'LIKE', Str::lower($keyword));
-                            } else {
-                                $query->orwhere(DB::raw($cast_begin . $column . $cast_end), 'LIKE', $keyword);
-                            }
+							$columnWrapped = DB::connection()->getQueryGrammar()->wrap($column);
+							if (Config::get('datatables::search.case_insensitive', false)) {
+								$query->orWhere(DB::raw('LOWER(' . $cast_begin . $columnWrapped . $cast_end . ')'), 'LIKE', Str::lower($keyword));
+							} else {
+								$query->orWhere(DB::raw($cast_begin . $columnWrapped . $cast_end), 'LIKE', $keyword);
+							}
                         }
 
                     }
@@ -799,7 +800,8 @@ class Datatables
                     $column = $this->prefixColumn($column_names[$i]);
 
                     if (Config::get('datatables::search.case_insensitive', false)) {
-                        $this->query->where(DB::raw('LOWER(' . $column . ')'), 'LIKE', Str::lower($keyword));
+						$columnWrapped = DB::connection()->getQueryGrammar()->wrap($column);
+						$this->query->where(DB::raw('LOWER(' . $columnWrapped . ')'), 'LIKE', Str::lower($keyword));
                     } else {
                         //note: so, when would a ( be in the columns?  It will break a select if that's put in the columns
                         //without a DB::raw.  It could get there in filter columns, but it wouldn't be delt with here.
